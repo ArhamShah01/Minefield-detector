@@ -10,7 +10,7 @@ Aerial images do not reveal buried mines. The vision service labels visible terr
 
 - JPG and PNG upload with content type, size, image integrity, pixel count, grid dimensions, and model response validation.
 - FastAPI image analysis endpoint that uses Groq Vision when `GROQ_API_KEY` is configured, with model configurable through `GROQ_MODEL` (default `qwen/qwen3.8-27b`). Without a key, the endpoint returns an explicitly labeled illustrative demo map.
-- Editable 20 by 20 terrain map, image preview, dark mode, responsive layout, map zoom, seed configuration, scenario generation, robot start/destination selection, fixed speed of one cell per second, pause, resume, step, reset, and event log.
+- Editable 20 by 20 terrain map, image preview, dark mode, responsive layout, map zoom, seed configuration with automatic scenario generation, robot start/destination selection, fixed speed of one cell per second, pause, resume, step, reset, and event log.
 - A* with Manhattan distance and four-way movement, obstacle avoidance, route replanning, and safe stop when no path exists.
 - Navigation follows the operational sequence: generate the terrain grid, set start and destination, initialize robot telemetry, plan with A*, move one cell, read GPS/LiDAR/metal detector, process readings, update robot knowledge on a new hazard, replan, and check destination or stop when unreachable.
 - Simulated GPS, a four-cell cross sensor footprint (one adjacent cell in each cardinal direction), LiDAR clearance, and metal detector readings. When the sensor detects a mine, the robot updates its knowledge map, replans around the mine, and automatically follows the new route. Ground truth is isolated from map display and navigation until a sensor encounter.
