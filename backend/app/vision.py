@@ -18,8 +18,6 @@ def make_demo(rows: int, cols: int) -> GridResponse:
             # Fixed illustrative terrain features, explicitly not inferred from an image.
             if (r in (5, 6, 13) and 3 <= c <= min(cols - 4, 15)) or (c == 11 and 9 <= r <= 12):
                 terrain, confidence = 'obstacle', .86
-            if (r, c) in {(2, 15), (16, 4), (10, 17)}:
-                terrain, confidence = 'uncertain', .42
             line.append({'terrain': terrain, 'confidence': confidence})
         grid.append(line)
     return GridResponse(rows=rows, cols=cols, grid=grid, source='demo', message='Illustrative demo grid. No image analysis was performed.')
@@ -48,7 +46,7 @@ def parse_grid(content: str, rows: int, cols: int) -> list[list[dict]]:
         if not isinstance(line, list) or len(line) != cols: raise ValueError('Model returned invalid grid dimensions.')
         row = []
         for cell in line:
-            if not isinstance(cell, dict) or cell.get('terrain') not in {'clear','obstacle','uncertain'}: raise ValueError('Model returned an invalid terrain class.')
+            if not isinstance(cell, dict) or cell.get('terrain') not in {'clear','obstacle'}: raise ValueError('Model returned an invalid terrain class.')
             score = cell.get('confidence')
             if not isinstance(score, (int,float)) or isinstance(score,bool) or not 0 <= score <= 1: raise ValueError('Model returned an invalid confidence score.')
             row.append({'terrain':cell['terrain'],'confidence':float(score)})
@@ -62,7 +60,7 @@ async def analyze(data: bytes, mime: str, rows: int, cols: int, max_bytes: int) 
     if not key: return make_demo(rows, cols)
     buffer = BytesIO(); image.save(buffer, format='JPEG', quality=88)
     encoded = base64.b64encode(buffer.getvalue()).decode()
-    prompt = f'''Analyze this drone photo for visible surface terrain only. Never infer, claim, or label buried mines; aerial imagery cannot detect buried mines. Return JSON only with grid: exactly {rows} rows x {cols} columns. Each cell is {{"terrain":"clear|obstacle|uncertain","confidence":0.0}}. Obstacles are visible surface obstructions. Use uncertain when image detail is insufficient. Grid spans the image top-left to bottom-right.'''
+    prompt = f'''Analyze this drone photo for visible surface terrain only. Never infer, claim, or label buried mines; aerial imagery cannot detect buried mines. Return JSON only with grid: exactly {rows} rows x {cols} columns. Each cell is {{"terrain":"clear|obstacle","confidence":0.0}}. Obstacles are visible surface obstructions; classify terrain as clear when unsure. Grid spans the image top-left to bottom-right.'''
     async with httpx.AsyncClient(timeout=75) as client:
         response = await client.post('https://api.groq.com/openai/v1/chat/completions', headers={'Authorization':f'Bearer {key}','Content-Type':'application/json'}, json={'model':MODEL,'temperature':0,'messages':[{'role':'user','content':[{'type':'text','text':prompt},{'type':'image_url','image_url':{'url':f'data:image/jpeg;base64,{encoded}'}}]}]})
     response.raise_for_status()

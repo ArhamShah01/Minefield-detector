@@ -1,7 +1,7 @@
 from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
-Terrain = Literal['clear', 'obstacle', 'uncertain']
+Terrain = Literal['clear', 'obstacle']
 
 class Cell(BaseModel):
     terrain: Terrain
