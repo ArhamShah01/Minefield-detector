@@ -1,5 +1,16 @@
 export function seededRandom(seed){let value=(Number.isFinite(Number(seed))?Number(seed):1)>>>0;return()=>{value+=0x6D2B79F5;let t=value;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
-export function buildScenario(knowledge,seed=42,protectedPositions=[]){const rand=seededRandom(seed),rows=knowledge.length,cols=knowledge[0].length,protectedCells=new Set(protectedPositions.map(p=>`${p.row},${p.col}`)),truth=knowledge.map(row=>row.map(cell=>({...cell,mine:false}))),candidates=[];for(let r=1;r<rows-1;r++)for(let c=1;c<cols-1;c++)if(!protectedCells.has(`${r},${c}`)&&truth[r][c].terrain==='clear')candidates.push({row:r,col:c});for(let i=candidates.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[candidates[i],candidates[j]]=[candidates[j],candidates[i]]}const mineCount=Math.min(candidates.length,Math.max(2,Math.round(rows*cols*.018)));for(const p of candidates.slice(0,mineCount))truth[p.row][p.col].mine=true;return truth}
+export function buildScenario(knowledge,seed=42,protectedPositions=[]){
+ const rand=seededRandom(seed),rows=knowledge.length,cols=knowledge[0].length;
+ const protectedCells=new Set(protectedPositions.map(p=>`${p.row},${p.col}`));
+ const truth=knowledge.map(row=>row.map(cell=>({...cell,mine:false}))),candidates=[];
+ // Candidate coordinates come from grid dimensions and protected cells only.
+ // Terrain edits therefore cannot shift mine locations for a given seed.
+ for(let r=1;r<rows-1;r++)for(let c=1;c<cols-1;c++)if(!protectedCells.has(`${r},${c}`))candidates.push({row:r,col:c});
+ for(let i=candidates.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[candidates[i],candidates[j]]=[candidates[j],candidates[i]]}
+ const mineCount=Math.min(candidates.length,Math.max(2,Math.round(rows*cols*.018)));
+ for(const p of candidates.slice(0,mineCount))truth[p.row][p.col].mine=true;
+ return truth
+}
 const SENSOR_RANGE=1,DIRECTIONS=[[0,0],[0,1],[0,-1],[1,0],[-1,0]];
 function sensedCells(position,truth){return DIRECTIONS.flatMap(([dr,dc])=>dr===0&&dc===0?[{row:position.row,col:position.col,distance:0}]:Array.from({length:SENSOR_RANGE},(_,i)=>{const distance=i+1;return{row:position.row+dr*distance,col:position.col+dc*distance,distance}})).filter(cell=>truth[cell.row]?.[cell.col])}
 export function sensorReadings(position,truth){const cells=sensedCells(position,truth),obstruction=cells.filter(p=>truth[p.row][p.col].terrain==='obstacle').sort((a,b)=>a.distance-b.distance)[0],mine=cells.filter(p=>truth[p.row][p.col].mine).sort((a,b)=>a.distance-b.distance)[0];return{lidar:obstruction?.distance??null,metal:mine?'DETECTED':'CLEAR',metalDistance:mine?.distance??null,metalPosition:mine?{row:mine.row,col:mine.col}:null}}
