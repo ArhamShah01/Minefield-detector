@@ -14,9 +14,9 @@ Aerial images do not reveal buried mines. The vision service labels visible terr
 - A* with Manhattan distance and four-way movement, obstacle avoidance, route replanning, and safe stop when no path exists.
 - Navigation follows the operational sequence: generate the terrain grid, set start and destination, initialize robot telemetry, plan with A*, move one cell, read GPS/LiDAR/metal detector, process readings, update robot knowledge on a new hazard, replan, and check destination or stop when unreachable.
 - Simulated GPS, a four-cell cross sensor footprint (one adjacent cell in each cardinal direction), LiDAR clearance, and metal detector readings. When the sensor detects a mine, the robot updates its knowledge map, replans around the mine, and automatically follows the new route. Ground truth is isolated from map display and navigation until a sensor encounter.
-- JSON scenario import/export and mission summary.
+- Mission summary.
 - Optional presentation-only ground-truth overlay for displaying simulated mines and truth obstacles. This overlay never feeds the robot map, sensors, or route planner.
-- Manual mine placement and removal for demonstrations. Select `Place / remove mine`, click a grid cell, then run the mission. Manual placements change only ground truth and are saved in exported scenarios.
+- Manual mine placement and removal for demonstrations. Select `Place / remove mine`, click a grid cell, then run the mission. Manual placements change only ground truth.
 - When a mine is detected, the robot marks it on its knowledge map, computes a different A* route, and follows that route automatically. Reset restores the pre-run map and robot position while retaining the active seed and ground truth for repeatable reruns. Generating again after changing the seed creates exactly seven mines on a 20 by 20 map, excluding the configured start and destination.
 
 ## Architecture
